@@ -25,9 +25,34 @@ jobs:
           EOF
       - run: cp android-config/MainActivity.java android/app/src/main/java/com/ailebutce/pro/MainActivity.java
       - run: chmod +x android/gradlew
-      - run: cd android && ./gradlew assembleDebug --no-daemon
+      - name: Keystore olustur
+        run: |
+          keytool -genkeypair -v \
+            -keystore aile-butce.keystore \
+            -alias ailebutce \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass ailebutce123 \
+            -keypass ailebutce123 \
+            -dname "CN=Aile Butce, OU=App, O=Kemal, L=Istanbul, S=Istanbul, C=TR"
+      - name: Build ve imzala
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+          cd ..
+          zipalign -v 4 \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            aile-butce-aligned.apk
+          apksigner sign \
+            --ks aile-butce.keystore \
+            --ks-alias ailebutce \
+            --ks-pass pass:ailebutce123 \
+            --key-pass pass:ailebutce123 \
+            --out aile-butce-pro.apk \
+            aile-butce-aligned.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: aile-butce-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: aile-butce-pro
+          path: aile-butce-pro.apk
           retention-days: 30
