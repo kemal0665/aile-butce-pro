@@ -23,36 +23,17 @@ jobs:
           cat > android/app/google-services.json << 'EOF'
           {"project_info":{"project_number":"1060268836577","project_id":"ailebutce-fbabc","storage_bucket":"ailebutce-fbabc.firebasestorage.app"},"client":[{"client_info":{"mobilesdk_app_id":"1:1060268836577:android:523309789975e7d69059a0","android_client_info":{"package_name":"com.ailebutce.pro"}},"api_key":[{"current_key":"AIzaSyAyJAfekNSERvK-86Xxlf7GgHBSFEvIfOg"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
-      - run: cp android-config/MainActivity.java android/app/src/main/java/com/ailebutce/pro/MainActivity.java
+      - run: mkdir -p android/app/src/main/java/com/ailebutce/pro && cp android-config/MainActivity.java android/app/src/main/java/com/ailebutce/pro/MainActivity.java
       - run: chmod +x android/gradlew
-      - name: Keystore olustur
+      - name: Keystore ve imzali APK
         run: |
-          keytool -genkeypair -v \
-            -keystore aile-butce.keystore \
-            -alias ailebutce \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass ailebutce123 \
-            -keypass ailebutce123 \
-            -dname "CN=Aile Butce, OU=App, O=Kemal, L=Istanbul, S=Istanbul, C=TR"
-      - name: Build ve imzala
-        run: |
-          cd android
-          ./gradlew assembleRelease --no-daemon
+          keytool -genkeypair -v -keystore aile.keystore -alias aile -keyalg RSA -keysize 2048 -validity 10000 -storepass aile1234 -keypass aile1234 -dname "CN=Aile,O=Aile,C=TR"
+          cd android && ./gradlew assembleRelease --no-daemon
           cd ..
-          zipalign -v 4 \
-            android/app/build/outputs/apk/release/app-release-unsigned.apk \
-            aile-butce-aligned.apk
-          apksigner sign \
-            --ks aile-butce.keystore \
-            --ks-alias ailebutce \
-            --ks-pass pass:ailebutce123 \
-            --key-pass pass:ailebutce123 \
-            --out aile-butce-pro.apk \
-            aile-butce-aligned.apk
+          $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          $ANDROID_HOME/build-tools/34.0.0/apksigner sign --ks aile.keystore --ks-alias aile --ks-pass pass:aile1234 --key-pass pass:aile1234 --out aile-butce.apk aligned.apk
       - uses: actions/upload-artifact@v4
         with:
           name: aile-butce-pro
-          path: aile-butce-pro.apk
+          path: aile-butce.apk
           retention-days: 30
