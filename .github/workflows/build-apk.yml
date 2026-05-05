@@ -1,37 +1,33 @@
 name: APK Build
-
 on:
   push:
     branches: [main]
   workflow_dispatch:
-
 jobs:
-  build-apk:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
       - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
-
       - uses: android-actions/setup-android@v3
-
       - run: npm install
-
       - run: npx cap add android
-
       - run: npx cap sync android
-
-      - name: google-services.json
-        run: |
+      - run: |
           cat > android/app/google-services.json << 'EOF'
           {"project_info":{"project_number":"1060268836577","project_id":"ailebutce-fbabc","storage_bucket":"ailebutce-fbabc.firebasestorage.app"},"client":[{"client_info":{"mobilesdk_app_id":"1:1060268836577:android:523309789975e7d69059a0","android_client_info":{"package_name":"com.ailebutce.pro"}},"api_key":[{"current_key":"AIzaSyAyJAfekNSERvK-86Xxlf7GgHBSFEvIfOg"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
-
-      - name: Patc
+      - run: cp android-config/MainActivity.java android/app/src/main/java/com/ailebutce/pro/MainActivity.java
+      - run: chmod +x android/gradlew
+      - run: cd android && ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aile-butce-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
