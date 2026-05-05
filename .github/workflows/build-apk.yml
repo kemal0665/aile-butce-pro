@@ -25,13 +25,14 @@ jobs:
           EOF
       - run: mkdir -p android/app/src/main/java/com/ailebutce/pro && cp android-config/MainActivity.java android/app/src/main/java/com/ailebutce/pro/MainActivity.java
       - run: chmod +x android/gradlew
-      - name: Keystore ve imzali APK
+      - name: Keystore olustur ve imzala
         run: |
           keytool -genkeypair -v -keystore aile.keystore -alias aile -keyalg RSA -keysize 2048 -validity 10000 -storepass aile1234 -keypass aile1234 -dname "CN=Aile,O=Aile,C=TR"
-          cd android && ./gradlew assembleRelease --no-daemon
-          cd ..
-          $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
-          $ANDROID_HOME/build-tools/34.0.0/apksigner sign --ks aile.keystore --ks-alias aile --ks-pass pass:aile1234 --key-pass pass:aile1234 --out aile-butce.apk aligned.apk
+          cd android && ./gradlew assembleRelease --no-daemon && cd ..
+          BTVER=$(ls $ANDROID_HOME/build-tools/ | sort -V | tail -1)
+          $ANDROID_HOME/build-tools/$BTVER/zipalign -v 4 android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore aile.keystore -storepass aile1234 -keypass aile1234 aligned.apk aile
+          cp aligned.apk aile-butce.apk
       - uses: actions/upload-artifact@v4
         with:
           name: aile-butce-pro
