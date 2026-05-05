@@ -1,0 +1,1 @@
+{"appId":"com.ailebutce.pro","appName":"Aile Butce Pro","webDir":"www","server":{"androidScheme":"https"},"plugins":{"PushNotifications":{"presentationOptions":["badge","sound","alert"]},"LocalNotifications":{"iconColor":"#FFD84D"}}}
